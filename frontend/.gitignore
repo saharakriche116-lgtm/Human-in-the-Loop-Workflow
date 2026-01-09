@@ -1,0 +1,46 @@
+# --- FRONTEND (Node/React) ---
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dépendances et build
+node_modules
+dist
+dist-ssr
+*.local
+
+# --- BACKEND (Python) ---
+# Environnement virtuel (TRES IMPORTANT)
+venv/
+env/
+ENV/
+
+# Bytecode Python (fichiers temporaires)
+__pycache__/
+*.pyc
+
+# --- BASE DE DONNÉES ---
+# Pour ne pas envoyer vos données locales sur GitHub
+*.db
+*.sqlite3
+hitl.db
+
+# --- CONFIGURATION & IDE ---
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Fichiers d'environnement (Sécurité : contient souvent des mots de passe)
+.env
