@@ -69,3 +69,11 @@ mlruns/
 *.ntvs*
 *.njsproj
 *.sln
+
+
+# ==========================
+# --- SECRETS & SENSIBLE ---
+# ==========================
+key.json
+client_secret.json
+*.key
