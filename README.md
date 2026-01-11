@@ -2,8 +2,8 @@
 
 Ce projet implémente un système d'extraction d'informations (CVs) assisté par l'IA. Il repose sur le concept Human-in-the-Loop : l'IA propose une extraction, l'humain corrige les erreurs , et le système se réentraine pour s'améliorer.
 
-![alt text](image.png)
-![alt text](image-1.png)
+![interface app ](./screenshots/image.png)
+![interface app ](./screenshots/image-1.png)
 
 ## Fonctionnalités Clés
 - **Ingestion :** Upload de fichiers PDF (CVs)
