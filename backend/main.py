@@ -5,43 +5,45 @@ import json
 import joblib
 from typing import List, Optional
 
-# Framework Web
+# Web Framework
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles # <--- AJOUTÉ
+from fastapi.staticfiles import StaticFiles  # <--- ADDED
 from pydantic import BaseModel
 
-# Base de données
+# Database
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-# NOS MODULES (Vos fichiers existants)
-from extraction_engine import extract_invoice_data 
-from train_model import train as train_pipeline     
+# OUR MODULES (Existing files)
+from extraction_engine import extract_invoice_data
+from train_model import train as train_pipeline
 
-# --- CONFIGURATION DB ---
+# --- DATABASE CONFIGURATION ---
 SQLALCHEMY_DATABASE_URL = "sqlite:///./hitl.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# --- MODÈLES DB ---
+# --- DATABASE MODELS ---
 class Document(Base):
     __tablename__ = "documents"
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String)
     upload_date = Column(DateTime, default=datetime.datetime.utcnow)
-    status = Column(String, default="pending") 
-    ai_extraction = Column(JSON) 
+    status = Column(String, default="pending")
+    ai_extraction = Column(JSON)
 
 class Correction(Base):
     __tablename__ = "corrections"
     id = Column(Integer, primary_key=True, index=True)
     document_id = Column(Integer)
-    corrected_data = Column(JSON) 
+    corrected_data = Column(JSON)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
-    time_taken = Column(Integer) 
+    time_taken = Column(Integer)
 
 Base.metadata.create_all(bind=engine)
 
@@ -60,12 +62,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- CONFIGURATION DOSSIER UPLOADS (POUR L'AFFICHAGE) ---
+# --- UPLOAD DIRECTORY CONFIGURATION (FOR DISPLAY) ---
 UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-# On rend le dossier "uploads" accessible via http://localhost:8000/uploads
+# Make the "uploads" directory accessible via http://localhost:8000/uploads
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 def get_db():
@@ -75,48 +77,55 @@ def get_db():
     finally:
         db.close()
 
-# --- LOGIQUE INTELLIGENTE ---
+# --- INTELLIGENT LOGIC ---
 MODEL_PATH = "model_hitl.pkl"
 
 def smart_extraction(file_path, filename):
     data = extract_invoice_data(file_path)
-    
+
     if os.path.exists(MODEL_PATH):
         try:
-            print("🤖 Modèle IA détecté...")
+            print("🤖 AI model detected...")
             model = joblib.load(MODEL_PATH)
             skills_found = data.get("skills", "")
-            
-            # Prediction simple
+
+            # Simple prediction
             predicted_role = model.predict([skills_found])[0]
             data["predicted_role"] = predicted_role
-            
+
         except Exception as e:
-            print(f"⚠️ L'IA n'a pas pu prédire : {e}")
+            print(f"⚠️ AI prediction failed: {e}")
     else:
-        print("ℹ️ Mode Cold Start.")
+        print("ℹ️ Cold start mode.")
 
     return data
 
-# --- ROUTES API ---
+# --- API ROUTES ---
 
 @app.post("/upload")
-async def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    # 1. Sauvegarder dans 'uploads' au lieu de 'temp_'
+async def upload_document(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    # 1. Save file to 'uploads' instead of a temporary folder
     file_location = f"{UPLOAD_DIR}/{file.filename}"
-    
+
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    
+
     # 2. Extraction
     extraction = smart_extraction(file_location, file.filename)
-    
-    # 3. Sauvegarde DB (On ne supprime PAS le fichier pour pouvoir l'afficher)
-    db_doc = Document(filename=file.filename, ai_extraction=extraction, status="pending")
+
+    # 3. Save to database (DO NOT delete the file so it can be displayed)
+    db_doc = Document(
+        filename=file.filename,
+        ai_extraction=extraction,
+        status="pending"
+    )
     db.add(db_doc)
     db.commit()
     db.refresh(db_doc)
-    
+
     return {"id": db_doc.id, "extraction": extraction}
 
 @app.get("/documents")
@@ -124,7 +133,10 @@ def get_documents(db: Session = Depends(get_db)):
     return db.query(Document).order_by(Document.upload_date.desc()).all()
 
 @app.post("/validate")
-def validate_correction(correction: CorrectionSchema, db: Session = Depends(get_db)):
+def validate_correction(
+    correction: CorrectionSchema,
+    db: Session = Depends(get_db)
+):
     db_corr = Correction(
         document_id=correction.document_id,
         corrected_data=correction.corrected_data,
@@ -132,19 +144,24 @@ def validate_correction(correction: CorrectionSchema, db: Session = Depends(get_
     )
     db.add(db_corr)
 
-    doc = db.query(Document).filter(Document.id == correction.document_id).first()
+    doc = db.query(Document).filter(
+        Document.id == correction.document_id
+    ).first()
     if doc:
         doc.status = "validated"
         doc.ai_extraction = correction.corrected_data
-    
+
     db.commit()
     return {"status": "success"}
 
 @app.post("/retrain")
 def retrain_endpoint():
     try:
-        train_pipeline() 
-        return {"status": "success", "message": "Modèle ré-entraîné avec succès !"}
+        train_pipeline()
+        return {
+            "status": "success",
+            "message": "Model retrained successfully!"
+        }
     except Exception as e:
-        print(f"Erreur entrainement: {e}")
+        print(f"Training error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

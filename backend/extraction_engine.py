@@ -3,19 +3,19 @@ import re
 
 def extract_invoice_data(file_path):
     extracted_data = {
-        "name": "Non trouvé",
-        "email": "Non trouvé",
-        "phone": "Non trouvé",
+        "name": "Not found",
+        "email": "Not found",
+        "phone": "Not found",
         "linkedin": "",
         "github": "",
-        "education": "",     # NOUVEAU
-        "languages": "",     # NOUVEAU
+        "education": "",     # NEW
+        "languages": "",     # NEW
         "skills": "",
-        "summary": "",       # NOUVEAU (Profil)
-        "predicted_role": "Inconnu"
+        "summary": "",       # NEW (Profile)
+        "predicted_role": "Unknown"
     }
 
-    # Mots-clés pour catégorisation
+    # Keywords for categorization
     SKILLS_KEYWORDS = ["python", "java", "sql", "react", "aws", "docker", "excel", "management", "communication", "marketing", "scrum", "agile", "c++", "linux", "git"]
     EDUCATION_KEYWORDS = ["master", "bachelor", "licence", "diplôme", "phd", "doctorat", "ingénieur", "bts", "dut", "university", "école"]
     LANGUAGES_KEYWORDS = ["anglais", "français", "espagnol", "allemand", "arabe", "english", "french", "spanish", "german", "arabic", "bilingue", "toeic"]
@@ -25,18 +25,18 @@ def extract_invoice_data(file_path):
             full_text = ""
             lines = []
             
-            # On récupère le texte et les lignes séparément
+            # Extract text and lines separately
             for page in pdf.pages:
                 text_page = page.extract_text()
                 if text_page:
                     full_text += text_page + "\n"
                     lines.extend(text_page.split('\n'))
             
-            # --- 1. NOM (Heuristique : Souvent la 1ère ligne non vide en majuscules ou Titre) ---
-            for line in lines[:5]: # On regarde les 5 premières lignes
+            # --- 1. NAME (Heuristic: Often the 1st non-empty line in caps or Title) ---
+            for line in lines[:5]: # Check the first 5 lines
                 clean_line = line.strip()
                 if len(clean_line) > 3 and len(clean_line) < 30 and not any(char.isdigit() for char in clean_line):
-                    # Si pas de chiffre et longueur raisonnable, on suppose que c'est le nom
+                    # If no digits and reasonable length, assume it's the name
                     extracted_data["name"] = clean_line
                     break
 
@@ -45,12 +45,12 @@ def extract_invoice_data(file_path):
             if email_match:
                 extracted_data["email"] = email_match.group(0)
 
-            # --- 3. TÉLÉPHONE ---
+            # --- 3. PHONE ---
             phone_match = re.search(r'(\+33|0|\+216)[1-9]([\s\.-]?\d{2}){4}', full_text)
             if phone_match:
                 extracted_data["phone"] = phone_match.group(0)
 
-            # --- 4. LIENS (LinkedIn / GitHub) ---
+            # --- 4. LINKS (LinkedIn / GitHub) ---
             linkedin_match = re.search(r'(https?://)?(www\.)?linkedin\.com/in/[a-zA-Z0-9_-]+', full_text)
             if linkedin_match:
                 extracted_data["linkedin"] = linkedin_match.group(0)
@@ -59,27 +59,27 @@ def extract_invoice_data(file_path):
             if github_match:
                 extracted_data["github"] = github_match.group(0)
 
-            # --- 5. COMPÉTENCES, FORMATION & LANGUES (Par mots-clés) ---
+            # --- 5. SKILLS, EDUCATION & LANGUAGES (By keywords) ---
             found_skills = set()
             found_education = set()
             found_languages = set()
             
             text_lower = full_text.lower()
 
-            # Compétences
+            # Skills
             for kw in SKILLS_KEYWORDS:
                 if kw in text_lower:
                     found_skills.add(kw)
             
-            # Formation (On extrait la ligne entière qui contient le mot clé "Master", etc.)
+            # Education (Extract the whole line containing keywords like "Master", etc.)
             for line in lines:
                 line_lower = line.lower()
                 # Education
                 if any(ed in line_lower for ed in EDUCATION_KEYWORDS):
                     found_education.add(line.strip())
-                # Langues
+                # Languages
                 if any(lang in line_lower for lang in LANGUAGES_KEYWORDS):
-                    # Filtre pour éviter de prendre des phrases trop longues
+                    # Filter to avoid taking very long sentences
                     if len(line) < 50: 
                         found_languages.add(line.strip())
 
@@ -87,11 +87,11 @@ def extract_invoice_data(file_path):
             extracted_data["education"] = " | ".join(list(found_education))
             extracted_data["languages"] = ", ".join(list(found_languages))
 
-            # --- 6. RÉSUMÉ (Première grosse phrase ou paragraphe, optionnel) ---
-            # Simple extraction des lignes entre le nom et la première section "Experience"
-            # (C'est rudimentaire, mais ça remplit le champ pour correction humaine)
+            # --- 6. SUMMARY (First big sentence or paragraph, optional) ---
+            # Simple extraction of lines between name and first "Experience" section
+            # (Rudimentary, but fills the field for human correction)
             
     except Exception as e:
-        print(f"Erreur extraction PDF: {e}")
+        print(f"PDF Extraction Error: {e}")
 
     return extracted_data
