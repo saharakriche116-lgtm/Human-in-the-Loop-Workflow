@@ -1,105 +1,149 @@
 # Project 3: Human-in-the-Loop Workflow (CV Extraction)
 
-Ce projet implémente un système d'extraction d'informations (CVs) assisté par l'IA. Il repose sur le concept Human-in-the-Loop : l'IA propose une extraction, l'humain corrige les erreurs , et le système se réentraine pour s'améliorer.
+This project implements an AI-assisted information extraction system for resumes (CVs). It is built upon the **Human-in-the-Loop** concept: the AI proposes an extraction, the human corrects any errors, and the system retrains itself to improve over time.
 
 ![interface app ](./screenshots/image.png)
 ![interface app ](./screenshots/image-1.png)
 
-## Fonctionnalités Clés
-- **Ingestion :** Upload de fichiers PDF (CVs)
-- **Extraction Hybride :** Utilisation de Regex pour préremplir les champs
-- **Correction Humaine :** Interface "Split-Screen" (PDF à gauche , Formulaire des champs extraite à droite)
-- **Apprentissage Continu :** Pipeline de reentrainement (Scikit-Learn) basé sur les corrections validées
-- **Métriques :** Suivi du temps de corrrection moyen et de la precision du modèle pour vérifier si le modèle est en train d'apprendre avec MLflow
+## Key Features
+- **Ingestion**: PDF file upload (Resumes/CVs).
+
+- **Hybrid Extraction**: Use of Regex/heuristics to pre-fill fields.
+
+- **Human Correction**: "Split-Screen" Interface (PDF viewer on the left, extracted fields form on the right).
+
+- **Continuous Learning**: Retraining pipeline (Scikit-Learn) based on validated corrections.
+Metrics: Monitoring of average correction time and model precision to verify learning progress using MLflow.
 
 ---
 
-## Prérequis
-Avant le lancement du projet, il faut s'assurez d'avoir installé :
-* **Python** (3.8 ou plus récent)
-* **Node.js** (v14 ou plus récent) & **npm**
+## Prerequisites
+Before starting the project, ensure you have the following installed:
+* **Python** (3.8 or newer)
+* **Node.js** (v14 or newer) & **npm**
 * **Git**
+* **Docker**
 
 
 ---
 
-## Installation & Lancement
+## Installation & Setup
 
-Le projet est divisé en deux dossiers : `backend` (API Python) et `frontend` (React Interface). il faut lancer deux terminaux séparés :
+The project is divided into two folders: `backend` (Python API) and `frontend` (React Interface). You need to launch two separate terminals:
 
-### 1️⃣ Installation du Backend (Terminal 1)
+### 1️⃣ Backend Installation (Terminal 1)
 
-On doit allez dans le dossier backend et installez les dépendances Python
+Navigate to the `backend` folder and install the Python dependencies
 
 ```bash
-# 1. Naviguer vers le backend
+# 1. Navigate to backend
 cd backend
 
-# 2. Créer un environnement virtuel 
-# Windows :
+# 2. Create a virtual environment
+# Windows:
 python -m venv venv
 venv\Scripts\activate
-# Mac/Linux :
+
+# Mac/Linux:
 python3 -m venv venv
 source venv/bin/activate
 
-# 3. Installer les librairies nécessaires
-pip install fastapi uvicorn sqlalchemy scikit-learn pandas pdfplumber python-multipart joblib
+# 3. Install necessary libraries
+pip install -r requirements.txt
 
-# 4. Démarrer le serveur API
+# 4. Start the API server
 uvicorn main:app --reload
 ```
 
-### 2️⃣ Installation du Frontend (Terminal 2)
+### 2️⃣ Frontend Installation(Terminal 2)
 
-On doit allez dans le dossier frontend et installez les dépendances Node
+Navigate to the `frontend` folder and install the Node dependencies.
 
 ```bash
-# 1. Naviguer vers le frontend
+# 1. Navigate to frontend
 cd frontend
 
-# 2. Installer les paquets
+# 2. Install packages
 npm install
 
-# 3. Lancer l'interface
+# 3. Launch the interface
 npm run dev
 ```
-L'application est maintenant accessible sur http://localhost:5173 comme il est indiqué dans le terminal 
+The application is now accessible on http://localhost:5173 as indicated in the terminal.
 
 ---
 
-## Guide d'utilisation (Workflow)
-Pour tester le cycle d'apprentissage complet :
+## User Guide (Workflow)
+To test the full learning cycle:
 
-* **Upload** : Sur la page d'accueil comme mentionné ci dessus , cliquez sur "Choisir un fichier" et sélectionnez un CV au format PDF
+1. **Upload:** On the homepage, click "Choose File" and select a resume in PDF format.
 
-* **Correction** : Le document apparait dans la liste avec un statut "Pending" On Clique donc sur "Corriger"
+2. **Correction:** The document appears in the list with a "Pending" status. Click on "Correct".
 
-* **Validation** : L'IA tente de remplir les champs (nom, email, skills...)
-* Corrigez les erreurs ou ajoutez des champs manquants 
-* Cliquez sur "Valider et Enregistrer"
+3. **Validation:**
 
-* **Ré-entraînement** : Après avoir corrigé des CVs variés, cliquez sur le bouton "Ré-entraîner l'IA" en haut à droite pour réentrainer le modèle pour qu'il peut predire mieux dans la prochaine fois
+    *  The AI attempts to fill in the fields (name, email, skills...).
 
-* **Visualisation** dans MLflow pour voir les métriques d'amélioration
+    *  Correct any errors or add missing fields manually.
 
+    *  Click "Validate & Save".
+4. **Retraining:** After correcting a variety of CVs, click the "Retrain AI" button in the top right corner to retrain the model so it predicts better next time.
+
+5. **Visualization:** Check MLflow to view improvement metrics.
 ---
 
-## Structure du Projet
+## MLOps & Advanced Configuration
+
+This project integrates **MLflow** for experiment tracking and **DVC** for data version control, ensuring a robust Machine Learning lifecycle.
+
+### 1. MLflow (Experiment Tracking)
+Every time you click **"Retrain AI"**, the system logs metrics (Accuracy, Precision, Recall) and artifacts (Confusion Matrix) to MLflow. This allows you to visualize if the model is actually learning from your corrections.
+
+**How to view the Dashboard:**
+1. Open a terminal in the `backend` folder.
+2. Run the following command:
+   ```bash
+   mlflow ui
+   ```
+3. Open your browser and navigate to `http://localhost:5000` as it's indicated in the terminal to access the MLflow dashboard.
+
+![mlflow interface ](./screenshots/mlflow.png)
+
+The scrreenshot above shows an example of logged experiments with metrics and artifacts.  
+
+### 2. DVC (Data Version Control)
+We use DVC to handle large files (like the trained model .pkl, the dataset, uploaded files and the SQLite database) that should not be stored in Git.  
+The tracked data is pushed to a Google Drive shared folder.  
+
+![drive interface ](./screenshots/dvc.png)  
+**How to pull the data:**  
+If you are cloning this project for the first time and need the training data/model, you would run:
+```bash
+dvc pull
+```
+---
+
+## Project Structure
 
 ```bash
 /project-root
 │
-├── /backend
-│   ├── main.py              # API FastAPI & Routes
-│   ├── extraction_engine.py # Logique d'extraction (Regex/PDF parsing)
-│   ├── train_model.py       # Pipeline ML (Scikit-Learn)
-│   ├── hitl.db              # Base de données SQLite (générée auto)
-│   └── model_hitl.pkl       # Modèle IA sauvegardee (généré auto)
+├── /.dvc                     # DVC Configuration Files
 │
-├── /frontend
-│   ├── src/App.jsx          # Interface Principale (Logique React)
-│   └── package.json         # Dépendances JS
+├── /backend                 # Python API (FastAPI)
+│   ├── requirements.txt     # Python Dependencies
+│   ├── main.py              # Main API & Routes
+│   ├── extraction_engine.py # Regex & PDF parsing logic
+│   ├── train_model.py       # ML Pipeline (Scikit-Learn + MLflow)
+│   ├── hitl.db              # SQLite Database (Auto-generated)
+│   └── model_hitl.pkl       # Trained Model (Auto-generated)
 │
-└── README.md                # Documentation
+├── /frontend                # React Interface
+│   ├── src/App.jsx          # Main UI Logic
+│   └── package.json         # JS Dependencies
+│
+├── /screenshots             # Project Screenshots
+├── .gitignore               # Git Ignore File
+├── .dvcignore               # DVC Ignore File
+└── README.md                # Project Documentation
 ```
