@@ -18,7 +18,7 @@ function App() {
       const res = await axios.get(`${API_URL}/documents`);
       setDocuments(res.data);
     } catch (error) {
-      console.error("Erreur chargement documents", error);
+      console.error("Error loading documents", error);
     }
   };
 
@@ -43,22 +43,22 @@ function App() {
         corrected_data: formData,
         time_taken: timeTaken
       });
-      alert("✅ Document validé !");
+      alert("✅ Document validated!");
       setCurrentDoc(null);
       fetchDocuments();
     } catch (error) {
-      console.error("Erreur validation", error);
+      console.error("Validation error", error);
     }
   };
 
   const handleRetrain = async () => {
-    if (!confirm("Voulez-vous lancer l'entraînement ?")) return;
+    if (!confirm("Do you want to start training?")) return;
     try {
-        alert("Entraînement en cours...");
+        alert("Training in progress...");
         const res = await axios.post(`${API_URL}/retrain`);
         alert(res.data.message);
     } catch (err) {
-        alert("Erreur entraînement");
+        alert("Training error");
     }
   };
 
@@ -70,12 +70,12 @@ function App() {
         await axios.post(`${API_URL}/upload`, formData);
         fetchDocuments();
     } catch (error) {
-        console.error("Erreur upload", error);
+        console.error("Upload error", error);
     }
   };
 
   return (
-    // CONTENEUR PRINCIPAL (Plein écran forcé)
+    // MAIN CONTAINER (Forced full screen)
     <div style={{ 
         width: '100vw', 
         height: '100vh', 
@@ -105,30 +105,35 @@ function App() {
             onClick={handleRetrain} 
             style={{ backgroundColor: '#646cff', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
         >
-            🧠 Ré-entraîner l'IA
+            🧠 Retrain AI
         </button>
       </div>
       
-      {/* CONTENU PRINCIPAL */}
+      {/* MAIN CONTENT */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', width: '100%' }}>
         
-        {/* --- CAS 1 : ACCUEIL --- */}
+        {/* --- CASE 1: HOME --- */}
         {!currentDoc && (
             <div style={{ padding: '40px', width: '100%', overflowY: 'auto' }}>
                 <div style={{ maxWidth: '800px', margin: '0 auto' }}>
                     <div style={{ marginBottom: '30px', padding: '20px', border: '2px dashed #555', borderRadius: '10px', textAlign: 'center' }}>
-                        <h3>📂 Ingérer un nouveau document</h3>
+                        <h3>📂 Ingest a new document</h3>
                         <input type="file" onChange={handleUpload} style={{ marginTop: '10px' }} />
                     </div>
                     
-                    <h3>Documents en attente ({documents.length})</h3>
+                    <h3>Pending documents ({documents.length})</h3>
                     <ul style={{ listStyle: 'none', padding: 0 }}>
                     {documents.map(doc => (
                         <li key={doc.id} style={{ padding: '15px', borderBottom: '1px solid #444', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Document #{doc.id} ({doc.filename}) - <span style={{color: doc.status === 'validated' ? '#4ade80' : '#fbbf24'}}>{doc.status}</span></span>
+                            <span>
+                              Document #{doc.id} ({doc.filename}) - 
+                              <span style={{color: doc.status === 'validated' ? '#4ade80' : '#fbbf24'}}>
+                                {doc.status}
+                              </span>
+                            </span>
                             {doc.status !== 'validated' && (
                                 <button onClick={() => startCorrection(doc)} style={{ marginLeft: '10px', cursor: 'pointer', padding: '5px 10px' }}>
-                                Corriger
+                                  Correct
                                 </button>
                             )}
                         </li>
@@ -138,16 +143,16 @@ function App() {
             </div>
         )}
 
-        {/* --- CAS 2 : MODE CORRECTION (50% / 50%) --- */}
+        {/* --- CASE 2: CORRECTION MODE (50% / 50%) --- */}
         {currentDoc && (
             <>
-                {/* PARTIE GAUCHE : PDF 
-                   - flex: 1 assure qu'il prend 50% de l'espace
-                   - padding: 0 pour coller aux bords
+                {/* LEFT SIDE: PDF
+                   - flex: 1 ensures 50% width
+                   - padding: 0 to stick to edges
                 */}
                 <div style={{ flex: 1, borderRight: '1px solid #444', height: '100%', padding: 0, overflow: 'hidden' }}>
                     <iframe 
-                        // AJOUT DE #view=FitH ICI : Cela force le PDF à prendre toute la largeur
+                        // ADD #view=FitH HERE: Forces the PDF to fit the full width
                         src={`${API_URL}/uploads/${currentDoc.filename}#view=FitH`} 
                         width="100%" 
                         height="100%" 
@@ -156,21 +161,23 @@ function App() {
                     />
                 </div>
 
-                {/* PARTIE DROITE : CHAMPS */}
+                {/* RIGHT SIDE: FIELDS */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: '#222' }}>
                     
                     <div style={{ padding: '20px', borderBottom: '1px solid #444' }}>
                         <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Extraction & Validation</h2>
-                        <p style={{ color: '#aaa', margin: '5px 0 0 0', fontSize: '0.9rem' }}>Fichier : {currentDoc.filename}</p>
+                        <p style={{ color: '#aaa', margin: '5px 0 0 0', fontSize: '0.9rem' }}>
+                          File: {currentDoc.filename}
+                        </p>
                     </div>
 
                     <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
                         {Object.keys(formData).length === 0 && (
-                            <p style={{color: '#ef4444'}}>⚠️ Aucune donnée détectée.</p>
+                            <p style={{color: '#ef4444'}}>⚠️ No data detected.</p>
                         )}
 
                         {Object.keys(formData).map((key) => {
-                            // Liste des champs qui nécessitent une grande zone de texte
+                            // Fields that require a larger text area
                             const isLongText = ['skills', 'education', 'summary', 'experience'].includes(key);
                             
                             return (
@@ -184,7 +191,7 @@ function App() {
                                             name={key}
                                             value={formData[key]}
                                             onChange={handleChange}
-                                            rows={4} // Hauteur ajustée
+                                            rows={4}
                                             style={{ 
                                                 width: '100%', 
                                                 padding: '10px', 
@@ -222,13 +229,13 @@ function App() {
                             onClick={handleSubmit}
                             style={{ flex: 2, background: '#16a34a', color: 'white', padding: '12px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
                         >
-                            Valider & Enregistrer
+                            Validate & Save
                         </button>
                         <button 
                             onClick={() => setCurrentDoc(null)}
                             style={{ flex: 1, background: '#4b5563', color: 'white', padding: '12px', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1rem' }}
                         >
-                            Annuler
+                            Cancel
                         </button>
                     </div>
                 </div>
