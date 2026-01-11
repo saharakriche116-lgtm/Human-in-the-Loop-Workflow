@@ -1,4 +1,31 @@
-# --- FRONTEND (Node/React) ---
+# ==========================
+# 🐍 BACKEND (PYTHON)
+# ==========================
+# Byte-compiled / Optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# Environment Variables (SENSITIVE DATA)
+.env
+.env.local
+
+# ==========================
+# ⚛️ FRONTEND (NODE/REACT)
+# ==========================
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+dist-ssr/
+
 # Logs
 logs
 *.log
@@ -6,41 +33,39 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-# Dépendances et build
-node_modules
-dist
-dist-ssr
-*.local
-
-# --- BACKEND (Python) ---
-# Environnement virtuel (TRES IMPORTANT)
-venv/
-env/
-ENV/
-
-# Bytecode Python (fichiers temporaires)
-__pycache__/
-*.pyc
-
-# --- BASE DE DONNÉES ---
-# Pour ne pas envoyer vos données locales sur GitHub
+# ==========================
+# 💾 DATA & GENERATED FILES
+# ==========================
+# SQLite Databases (Handled by DVC if needed, otherwise ignored)
 *.db
 *.sqlite3
 hitl.db
+hitl.db-journal
 
-# --- CONFIGURATION & IDE ---
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# User Uploads (Privacy & Size) - From main.py
+uploads/
+
+
+# ==========================
+# 🤖 MACHINE LEARNING & MLOPS
+# ==========================
+# Binary Models (Large files -> Handled by DVC)
+*.pkl
+model_hitl.pkl
+
+# MLflow Local Runs (Creates thousands of small files, avoid git)
+mlruns/
+
+
+# ==========================
+# ⚙️ SYSTEM & IDE
+# ==========================
 .DS_Store
+.vscode/
+!.vscode/extensions.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
-
-# Fichiers d'environnement (Sécurité : contient souvent des mots de passe)
-.env
