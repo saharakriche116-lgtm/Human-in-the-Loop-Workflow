@@ -15,6 +15,8 @@ This project implements an AI-assisted information extraction system for resumes
 - **Continuous Learning**: Retraining pipeline (Scikit-Learn) based on validated corrections.
 Metrics: Monitoring of average correction time and model precision to verify learning progress using MLflow.
 
+- **Metrics Monitoring**: Checking metrics everytime using mlflow interface to see if the model is learning
+
 ---
 
 ## Prerequisites
@@ -23,6 +25,7 @@ Before starting the project, ensure you have the following installed:
 * **Node.js** (v14 or newer) & **npm**
 * **Git**
 * **Docker**
+* **MLflow**
 
 
 ---
