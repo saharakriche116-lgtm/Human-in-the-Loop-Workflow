@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: hitl_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      #Hot reload for the backend
+      - ./backend:/app
+      # Persist data files
+      - ./backend/hitl.db:/app/hitl.db
+      - ./backend/mlruns:/app/mlruns
+      - ./backend/uploads:/app/uploads
+      # Avoid overwriting the virtual environment in the container with the local one
+      - /app/venv
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - hitl-network
+
+  frontend:
+    build: ./frontend
+    container_name: hitl_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Hot Reload for React
+      - ./frontend:/app
+      # Avoid overwriting node_modules in the container with the local one
+      - /app/node_modules
+    depends_on:
+      - backend
+    environment:
+      # Enable polling for file changes (useful for vite in Docker on Windows/Mac)
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - hitl-network
+  mlflow:
+    build: ./backend          # Using same construction as the backend
+    container_name: hitl_mlflow
+    ports:
+      - "5000:5000"           # mlflow standard port
+    volumes:
+      - ./backend:/app        # mapping with mlruns directory
+    command: mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri file:./mlruns
+    depends_on:
+      - backend
+
+networks:
+  hitl-network:
+    driver: bridge
