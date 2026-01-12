@@ -145,7 +145,8 @@ To access services:
 ```bash
 /project-root
 │__dockerignore
-├── /.dvc                     # DVC Configuration Files
+├── docker-compose.yml
+├── /.dvc                 # DVC Configuration Files
 │
 ├── /backend                 # Python API (FastAPI)
 │   ├── requirements.txt     # Python Dependencies
@@ -154,10 +155,12 @@ To access services:
 │   ├── train_model.py       # ML Pipeline (Scikit-Learn + MLflow)
 │   ├── hitl.db              # SQLite Database (Auto-generated)
 │   └── model_hitl.pkl       # Trained Model (Auto-generated)
+|   └── Dockerfile
 │
 ├── /frontend                # React Interface
 │   ├── src/App.jsx          # Main UI Logic
 │   └── package.json         # JS Dependencies
+|   └── Dockerfile
 │
 ├── /screenshots             # Project Screenshots
 ├── .gitignore               # Git Ignore File
