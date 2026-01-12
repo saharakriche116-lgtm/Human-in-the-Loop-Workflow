@@ -126,11 +126,25 @@ dvc pull
 ```
 ---
 
+
+##  Docker Quick Start
+To run this project ,we just need to use Docker :
+Open a terminal in the project root and run:  
+``` bash
+docker-compose up --build
+```  
+To access services:  
+-  **Frontend Interface:** http://localhost:5173
+-  **Backend API:** http://localhost:8000
+- **MLflow Dashboard:** http://localhost:5000
+
+---
+
 ## Project Structure
 
 ```bash
 /project-root
-│
+│__dockerignore
 ├── /.dvc                     # DVC Configuration Files
 │
 ├── /backend                 # Python API (FastAPI)
